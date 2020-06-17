@@ -1,0 +1,14 @@
+[Unit]
+Description=OEM Sensor
+StopWhenUnneeded=false
+Requires=xyz.openbmc_project.EntityManager.service phosphor-ipmi-host.service
+After=xyz.openbmc_project.EntityManager.service phosphor-ipmi-host.service
+
+[Service]
+Restart=always
+RestartSec=5
+StartLimitBurst=10
+ExecStart=/usr/bin/oemsensor
+
+[Install]
+WantedBy=multi-user.target
