@@ -103,7 +103,7 @@ bool getOemConfig(
                     continue;
                 }
                 uint64_t snrnum = std::visit(VariantToUnsignedIntVisitor(), 
-				                             findSnrNum->second);
+                                             findSnrNum->second);
 
                 auto findSnrType = config.second.find("SnrType");
                 if (findSnrType == config.second.end())
@@ -199,13 +199,21 @@ bool getOemConfig(
                     }
                 }
                 auto ifacename = name + "_" + OemIface;
+                std::string ifaceobjpath = "";
                 if (sensorIfaces.find(ifacename) == sensorIfaces.end())
                 {
                     for (auto& oemEvt : ifaceList)
                     {
-                        auto iface = objectServer.add_interface(
-                                    "/xyz/openbmc_project/OEMSensor" + sensortypestr + std::string("/") + name,
-                                    oemEvt.first);
+                        if (snrtype == 40 || snrtype == 111) //for redfish sensor parsing path. i.e. /xyz/openbmc_project/sensors/$sensorName
+                        {
+                            ifaceobjpath = "/xyz/openbmc_project/sensors" + sensortypestr + std::string("/") + name;
+                        }
+                        else
+                        {
+                            ifaceobjpath = "/xyz/openbmc_project/OEMSensor" + sensortypestr + std::string("/") + name;
+                        }
+                        
+                        auto iface = objectServer.add_interface(ifaceobjpath, oemEvt.first);
                         for (auto& oemsetting : oemEvt.second)
                         {
                             const auto property = oemsetting.property;
@@ -214,7 +222,7 @@ bool getOemConfig(
                                 bool value = false;
                                 auto dfvalue = oemsetting.dfvalue; 
                             
-                                if (dfvalue == "1")							
+                                if (dfvalue == "1")
                                 {
                                     value = true;
                                 }
@@ -222,6 +230,24 @@ bool getOemConfig(
                                                          sdbusplus::asio::PropertyPermission::readWrite);
                             } 
                             else if (oemsetting.ptype == "string")
+                            {
+                                auto value = oemsetting.dfvalue;
+                                iface->register_property(property, value,
+                                                         sdbusplus::asio::PropertyPermission::readWrite);
+                            }
+                            else if (oemsetting.ptype == "int64_t")
+                            {
+                                auto value = oemsetting.dfvalue;
+                                iface->register_property(property, static_cast<int64_t>(stoi(value)),
+                                                         sdbusplus::asio::PropertyPermission::readWrite);
+                            }
+                            else if (oemsetting.ptype == "double")
+                            {
+                                auto value = oemsetting.dfvalue;
+                                iface->register_property(property, static_cast<double>(stod(value)),
+                                                         sdbusplus::asio::PropertyPermission::readWrite);
+                            }
+                            else 
                             {
                                 auto value = oemsetting.dfvalue;
                                 iface->register_property(property, value,

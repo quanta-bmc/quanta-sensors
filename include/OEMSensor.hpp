@@ -82,4 +82,7 @@ const static boost::container::flat_map<const char*, char*, CmpStr>
                         {"19", "/criticalinterrupt"},
                         {"15", "/posterror"},
                         {"16", "/eventloggingdisable"},
-                        {"7", "/processor"}}};
+                        {"7", "/processor"},
+                        {"40", "/utilization"}, /*managementsubsystemhealth*/
+                        {"111", "/oem"} /*managementsubsystemhealth*/
+                      }};
